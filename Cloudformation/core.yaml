@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Core stack for my Medium Article"
+Resources:
+  Vpc:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+  Igw:
+    Type: "AWS::EC2::InternetGateway"
+  VpcIgwAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref Igw
+  RouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref Vpc
+  Route:
+    Type: "AWS::EC2::Route"
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref Igw
+  Subnet1:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: "10.0.1.0/24"
+      MapPublicIpOnLaunch: True
+  SubnetRtAssoc1:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref Subnet1
+      RouteTableId: !Ref RouteTable
+  Subnet2:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: "10.0.2.0/24"
+      MapPublicIpOnLaunch: True
+  SubnetRtAssoc2:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref Subnet2
+      RouteTableId: !Ref RouteTable
+  TaskRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "AllowFargateToAssumeRole"
+            Effect: "Allow"
+            Action: "sts:AssumeRole"
+            Principal:
+              Service: "ecs-tasks.amazonaws.com"
+  TaskPolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyName: "FargateTaskPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - "ssm:GetParameter"
+              - "ssm:DescribeParameters"
+            Resource: "*"
+      Roles:
+        - !Ref TaskRole
+  Ecr:
+    Type: "AWS::ECR::Repository"
+    Properties:
+      RepositoryName: "MyRepo"
+  Cluster:
+    Type: "AWS::ECS::Cluster"
+    Properties:
+      ClusterName: "MyCluster"
