@@ -1,6 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: "Core stack for my Medium Article"
 Resources:
+# Network
   Vpc:
     Type: "AWS::EC2::VPC"
     Properties:
@@ -44,6 +45,7 @@ Resources:
     Properties:
       SubnetId: !Ref Subnet2
       RouteTableId: !Ref RouteTable
+  # ECS
   TaskRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -78,3 +80,81 @@ Resources:
     Type: "AWS::ECS::Cluster"
     Properties:
       ClusterName: "MyCluster"
+  # SSM
+  TaskValueParameter:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Type: String
+      Name: "AppValue"
+      Description: "The value our simple app will show"
+      Value: "Default"
+  TaskReplicasAmountParameter:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Type: String
+      Name: "TaskReplicas"
+      Description: "Amount of parallel Fargate tasks to run in the service"
+      Value: "1"
+  # Lambda
+  TrailBucket:
+    Type: "AWS::S3::Bucket"
+  TrailBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: TrailBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "AWSCloudTrailAclCheck"
+            Effect: "Allow"
+            Principal:
+              Service: "cloudtrail.amazonaws.com"
+            Action: "s3:GetBucketAcl"
+            Resource:
+              !Sub |-
+              arn:aws:s3:::${S3Bucket}
+          - Sid: "AWSCloudTrailWrite"
+            Effect: "Allow"
+            Principal:
+              Service: "cloudtrail.amazonaws.com"
+            Action: "s3:PutObject"
+            Resource:
+              !Sub |-
+              arn:aws:s3:::${S3Bucket}/AWSLogs/${AWS::AccountId}/*
+            Condition:
+              StringEquals:
+                s3:x-amz-acl: "bucket-owner-full-control"
+  Trail:
+    Type: "AWS::CloudTrail::Trail"
+    DependsOn: TrailBucketPolicy
+    Properties:
+      S3BucketName: !Ref TrailBucket
+      IsLogging: True
+  LambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "AllowLambdaToAssumeRole"
+            Effect: "Allow"
+            Action: "sts:AssumeRole"
+            Principal:
+              Service: "lambda.amazonaws.com"
+  LambdaPolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyName: "LambdaPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "s3:ListBuckets"
+              - "s3:GetObject"
+            Resource:
+              - !GetAtt TrailBucket.Arn
+              - !Join [ "", [ !GetAtt TrailBucket.Arn, "/*" ] ]
+      Roles:
+        - !Ref LambdaRole
