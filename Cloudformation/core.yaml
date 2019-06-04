@@ -75,11 +75,11 @@ Resources:
   Ecr:
     Type: "AWS::ECR::Repository"
     Properties:
-      RepositoryName: "MyRepo"
+      RepositoryName: "myrepo"
   Cluster:
     Type: "AWS::ECS::Cluster"
     Properties:
-      ClusterName: "MyCluster"
+      ClusterName: "mycluster"
   # SSM
   TaskValueParameter:
     Type: "AWS::SSM::Parameter"
@@ -113,7 +113,7 @@ Resources:
             Action: "s3:GetBucketAcl"
             Resource:
               !Sub |-
-              arn:aws:s3:::${S3Bucket}
+              arn:aws:s3:::${TrailBucket}
           - Sid: "AWSCloudTrailWrite"
             Effect: "Allow"
             Principal:
@@ -121,7 +121,7 @@ Resources:
             Action: "s3:PutObject"
             Resource:
               !Sub |-
-              arn:aws:s3:::${S3Bucket}/AWSLogs/${AWS::AccountId}/*
+              arn:aws:s3:::${TrailBucket}/AWSLogs/${AWS::AccountId}/*
             Condition:
               StringEquals:
                 s3:x-amz-acl: "bucket-owner-full-control"
