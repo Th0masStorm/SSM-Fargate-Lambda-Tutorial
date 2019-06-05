@@ -115,3 +115,8 @@ Outputs:
     Value: !Ref Cluster
     Export:
       Name: ECS
+  EcsTaskRole:
+    Description: "ECS Task Role"
+    Value: !GetAtt TaskRole.Arn
+    Export:
+      Name: ECSTASKROLE
