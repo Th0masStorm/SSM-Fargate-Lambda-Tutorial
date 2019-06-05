@@ -1,0 +1,30 @@
+{
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "containerDefinitions": [
+        {
+            "name": "app",
+            "image": "YOUR_IMAGE:VERSION",
+            "memoryReservation": 512,
+            "essential": true,
+            "portMappings": [
+               {
+                    "containerPort": 5000,
+                    "protocol": "tcp"
+                }
+            ],
+            "secrets": [
+                {
+                    "name": "VALUE",
+                    "valueFrom": "AppValue"
+                }
+            ]
+        }
+    ],
+    "networkMode": "awsvpc",
+    "memory": "512",
+    "cpu": "256",
+    "executionRoleArn": "YOUR_TASK_EXEC_ROLE",
+    "family": "YOUR_FAMILY"
+}
