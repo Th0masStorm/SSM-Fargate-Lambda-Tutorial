@@ -1,6 +1,6 @@
-FROM python:stretch
+FROM python:alpine
 
-ADD app.py requirements.txt
+ADD . .
 RUN pip install -r requirements.txt
 EXPOSE 5000
 CMD ["python", "app.py"]
