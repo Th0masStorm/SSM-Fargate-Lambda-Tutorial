@@ -80,6 +80,18 @@ Resources:
     Type: "AWS::ECS::Cluster"
     Properties:
       ClusterName: "mycluster"
+  TaskSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Fargate task security group"
+      SecurityGroupEgress:
+        - IpProtocol: '-1'
+          CidrIp: '0.0.0.0/0'
+      SecurityGroupIngress:
+        - IpProtocol: 'tcp'
+          FromPort: 5000
+          ToPort: 5000
+          CidrIp: '0.0.0.0/0'
   # SSM
   TaskValueParameter:
     Type: "AWS::SSM::Parameter"
@@ -93,30 +105,21 @@ Outputs:
   Subnet1:
     Description: "Id of Subnet1"
     Value: !Ref Subnet1
-    Export:
-      Name: SUBNET1ID
   Subnet2:
     Description: "Id of Subnet2"
     Value: !Ref Subnet2
-    Export:
-      Name: SUBNET2ID
   Vpc:
     Description: "Id of VPC"
     Value: !Ref Vpc
-    Export:
-      Name: VPC
   Ecr:
     Description: "Repository name"
     Value: !Ref Ecr
-    Export:
-      Name: ECR
   Ecs:
     Description: "ECS Cluster"
     Value: !Ref Cluster
-    Export:
-      Name: ECS
   EcsTaskRole:
     Description: "ECS Task Role"
     Value: !GetAtt TaskRole.Arn
-    Export:
-      Name: ECSTASKROLE
+  ParameterKey:
+    Description: "Parameter key from SSM"
+    Value: !Ref TaskValueParameter
