@@ -88,13 +88,6 @@ Resources:
       Name: "AppValue"
       Description: "The value our simple app will show"
       Value: "Default"
-  TaskReplicasAmountParameter:
-    Type: "AWS::SSM::Parameter"
-    Properties:
-      Type: String
-      Name: "TaskReplicas"
-      Description: "Amount of parallel Fargate tasks to run in the service"
-      Value: "1"
 
 Outputs:
   Subnet1:
@@ -117,3 +110,8 @@ Outputs:
     Value: !Ref Ecr
     Export:
       Name: ECR
+  Ecs:
+    Description: "ECS Cluster"
+    Value: !Ref Cluster
+    Export:
+      Name: ECS
