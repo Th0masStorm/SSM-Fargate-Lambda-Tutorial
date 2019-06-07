@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Lambda stack for my Medium Article"
+Resources:
+  CloudWatchEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - "aws.ssm"
+        detail-type:
+          - "Parameter Store Change"
+      State: "ENABLED"
+      Targets:
+        -
+          Arn: !GetAtt LambdaFunction.Arn
+          Id: "LambdaFunction"
+  PermissionToInvokeLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LambdaFunction
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt CloudWatchEventRule.Arn
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "AllowLambdaToAssumeRole"
+            Effect: "Allow"
+            Action: "sts:AssumeRole"
+            Principal:
+              Service: "lambda.amazonaws.com"
+  LambdaPolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyName: "LambdaPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "ecs:*"
+              - "logs:*"
+            Resource: '*'
+      Roles:
+        - !Ref LambdaRole
+  LambdaFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        ZipFile: !Sub |
+          import boto3
+          import json
+
+          def main(event, context):
+              if event['source'] == "aws.ssm" and event['detail']['name'] == "AppValue" and event['detail']['operation'] == "Update":
+                  ecs = boto3.client('ecs')
+                  resp = ecs.update_service(cluster="mycluster",
+                                            service="app",
+                                            forceNewDeployment=True)
+                  print(resp)
+              return {
+                  "StatusCode": 200,
+                  "Message": json.dumps(resp)
+              }
+      Runtime: "python3.7"
+      Role: !GetAtt LambdaRole.Arn
+      Handler: "index.main"
