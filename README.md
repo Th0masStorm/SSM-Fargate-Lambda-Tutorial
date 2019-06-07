@@ -48,6 +48,7 @@ docker push ${REPO}:v1
 Now when you have your image pushed, you can deploy your service.
 Edit your `taskDefitinion.json` specifying proper parameters.
 Register task definition and create a service.
+
 ```bash
 aws ecs register-task-definition --profile YOUR_PROFILE --region YOUR_REGION --cli-input-json file://taskDefinition.json
 aws ecs create-service --profile YOUR_PROFILE --region YOUR_REGION \
@@ -59,3 +60,11 @@ aws ecs create-service --profile YOUR_PROFILE --region YOUR_REGION \
     --network-configuration "awsvpcConfiguration={subnets=[YOUR_SUBNETID1, YOUR_SUBNETID2],securityGroups=[YOUR_SG],assignPublicIp=ENABLED}" \
     --service-name app
 ```
+
+Deploy the Lambda stack:
+
+```bash
+aws cloudformation deploy --stack-name lambda --profile YOUR_PROFILE --region YOUR_REGION --template Cloudformation/lambda.yaml --capabilities CAPABILITY_IAM
+```
+
+When the stack creation is complete you can start playing around the parameter value and ECS re-deployments.
