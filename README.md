@@ -1,6 +1,6 @@
 # SSM-Fargate-Lambda-Tutorial
 
-This is the repo for my article about dynamic parameters with Fargate and Lambda.
+This is the repo for my [article](https://medium.com/@thomas.storm/infrastructure-is-dynamic-bro-73e71ce25499?source=friends_link&sk=47092b48c063b4c47dd4022c43d7e53c) about dynamic parameters with Fargate and Lambda.
 
 This project  contains the following:
 
